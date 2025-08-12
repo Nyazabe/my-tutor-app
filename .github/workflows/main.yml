@@ -1,0 +1,52 @@
+# This workflow is triggered on every push to the main branch.
+name: Deploy to Firebase Hosting
+
+# Configures the trigger for the workflow.
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    # Runs on the latest Ubuntu runner environment.
+    runs-on: ubuntu-latest
+
+    # A sequence of steps that will be executed as part of the job.
+    steps:
+      # Step 1: Checks out your repository code so the workflow can access it.
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Sets up Node.js, which is required for running the Firebase CLI.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # You can adjust this version as needed.
+
+      # Step 3: Installs the Firebase CLI globally.
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      # Step 4: Installs project dependencies.
+      - name: Install Project Dependencies
+        run: npm install
+        # This step assumes your project has a package.json and needs dependencies.
+        # If your project doesn't have a package.json, you can remove this step.
+
+      # Step 5: Builds your project.
+      - name: Build Project
+        run: npm run build
+        # This step assumes your project has a "build" script in its package.json.
+        # If your project doesn't, you can replace this with the appropriate build command or remove it.
+
+      # Step 6: Deploys the project to Firebase Hosting using the secret you created.
+      - name: Deploy to Firebase Hosting
+        run: firebase deploy --only hosting
+        env:
+          # This is the crucial part. We are passing the service account key
+          # as an environment variable that the Firebase CLI can use for authentication.
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
+          # This specifies which Firebase project to deploy to.
+          FIREBASE_PROJECT_ID: socraticgenai-nyaz
+
